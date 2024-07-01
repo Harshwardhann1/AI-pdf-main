@@ -28,7 +28,6 @@ let res1: any[][] = [];
 
 export const extraction = async(req: Request, res: Response)=> {
   try {
-    console.log('------> fist lineof try')
     const documentRes = await embeddings.embedDocuments(extractedText);
     console.log(documentRes)
     res1 = documentRes;

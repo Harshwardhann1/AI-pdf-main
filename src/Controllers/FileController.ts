@@ -25,7 +25,6 @@ export const fileupload = async (req: Request, res: Response) => {
 };
 
 let res1: any[][] = [];
-// let arrayofextraction;
 
 export const extraction = async(req: Request, res: Response)=> {
   try {

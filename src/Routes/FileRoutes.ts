@@ -7,7 +7,7 @@ const routes = Router();
 routes.post('/upload', upload.single('file'), fileupload)
 routes.get('/extraction', extraction)
 routes.get('/upsert', upsertData)
-routes.get('/query', queryData)
+routes.post('/query',(req,res)=> queryData(req,res))
 
 
 export default routes;

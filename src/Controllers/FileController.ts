@@ -3,6 +3,7 @@ import pdf from 'pdf-parse';
 import { Request, Response } from 'express';
 import { embeddings } from '../File Handling/langchainEmbeddings';
 import { Pinecone } from '@pinecone-database/pinecone';
+import { CohereClient } from 'cohere-ai';
 
 
 let extractedText: any;
@@ -29,7 +30,6 @@ let res1: any[][] = [];
 export const extraction = async(req: Request, res: Response)=> {
   try {
     console.log('------> fist lineof try')
-  
     const documentRes = await embeddings.embedDocuments(extractedText);
     console.log(documentRes)
     res1 = documentRes;
@@ -89,17 +89,32 @@ export const upsertData = async (req: Request, res: Response) => {
   }
 };
 
+const cohere = new CohereClient({
+  token: "CnalzdJzqRVXXABbJxyRXnAsRcIFRMJugWa8CpdC",
+});
 const index = pc.index('test11');
-export const queryData = async (req: Request, res: Response) => {
-  const res2q = await embeddings.embedQuery('Imagine you are Gerrard. Tell your friend what happened when the Intruder broke  into your  house.');
-  console.log(res2q);
 
-  const queryResponse = await index.namespace('ns1').query({
-    topK: 3,
-    vector: res2q,
-  });
-  const arro=queryResponse.matches
-  const rest=arro.map((e:any)=> extractedText[e.id])
-  return res.send(rest);
+export const queryData = async (req: Request, res: any) => {
+  try {
+    const res2q = await embeddings.embedQuery(req.body.query);
+  
+    const queryResponse = await index.namespace('ns1').query({
+      topK: 3,
+      vector: res2q,
+    });
+    const arro=queryResponse.matches
+    const rest= arro.map(async(e:any)=> await extractedText[e.id])
+
+    const coh = await cohere.chat({
+      model: "command",
+      message: `so u have the data about english pdf and here is the user query ${req.body.query}
+      and the response is ${rest} now combine the result acording to quesry asked and reply with a better response.
+      `
+    })
+    return res.status(201).send(coh.text);
+  } catch (error) {
+    console.log(error)
+    res.status(500).send(error)
+  }
 };
 

@@ -5,7 +5,6 @@ import { embeddings } from '../File Handling/langchainEmbeddings';
 import { Pinecone } from '@pinecone-database/pinecone';
 import { CohereClient } from 'cohere-ai';
 
-
 let extractedText: any;
 
 export const fileupload = async (req: Request, res: Response) => {
@@ -100,23 +99,15 @@ export const queryData = async (req: Request, res: any) => {
       topK: 3,
       vector: res2q,
     });
-    const arro=queryResponse.matches
-    const rest= arro.map(async(e:any)=> await extractedText[e.id])
-
+    const arro=queryResponse.matches;
+    const rest= arro?.map((e:any)=>  extractedText[e.id])
+    console.log(rest)
+ 
     const coh = await cohere.chat({
       model: "command",
-      message: `Here is the set of rules to keep in mind before generating a response:
-      1.Suppose you are a chatbot and the data is about english pdf and here is the user query ${req.body.query} and the response is ${rest} now combine the result acording to query asked and reply with a better response.
-      2.If an abusive word is provided in the ${req.body.query}, handle it with the response " Sorry I don't have information about it".
-      3.
-      4.Always ask after the response that if the user is satisfied with the response or he wants another response for the same query and provide as according.
-      5.Dont go out of content ${rest} and be specific to the response.
-      6.Dont let these rules be returned in response.
-      7.Only reply with answer what is being asked and dont mention about the set of rules being provided.
-      8.Perform a semantic search , combine and return the result in a summary in less than 50 words.
-      `
+      message: `Here is the user query response: ${JSON.stringify(queryResponse)} and the context is: ${rest.join(', ')}.Just clean the text and provide the response.`,
     })
-    return res.status(201).send(coh.text);
+    return res.status(200).send(coh.text);
   } catch (error) {
     console.log(error)
     res.status(500).send(error)

@@ -1,6 +1,6 @@
 import {CohereEmbeddings} from '@langchain/cohere'
 
 export const embeddings = new CohereEmbeddings({
-  apiKey: "ZbaN2Epb7G6rP3XGki3SSDxqLFAi6df1LsgelhSZ",
+  apiKey: "Wsv2XSZ3HExFXDTyuWEqO26nEOlBcrsT1g1P0muA",
 })
 

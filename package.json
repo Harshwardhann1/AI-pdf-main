@@ -8,7 +8,7 @@
     "serve": "node dist/index.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Harsh",
   "license": "ISC",
   "description": "",
   "dependencies": {

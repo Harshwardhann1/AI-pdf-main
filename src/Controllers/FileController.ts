@@ -102,23 +102,21 @@ try {
 
   const queryResponse = await index.namespace('ns1').query({
     vector: question,
-    topK: 3,
-    includeValues: true
+    topK: 2,
   })
 
   const match = queryResponse.matches;
   console.log(match)
   const rest = match.map((e) => harsh[parseInt(e.id)])
-
-
   const prompt = ChatPromptTemplate.fromMessages([req.body.query])
   const chain = prompt.pipe(model);
-
-  const refrain = [`######REFRAIN###### if a user is asking anything which is not related to ${rest} then reply with "Sorry I dont have enough information about this topic."`]
-
-  const special = [`######EVERYDAY###### if a user is greeting or saying some positive things , then reply as a human answering gracefully.`]
+  const user = [`I am Harsh and give me response for my query according to the paragraph only dont give additional information . This is the paragraph: ${rest}. Dont reply to any questions which in not there in the paragraph`]
+  const rules = [`If there is no paragraph then write "I dont have enough information on that. Make the response based of paragraph" and in case there is a some other queries of user for example:
+    "Question": "What is God"
+    "Answer":"I dont have information about this topic.`]
   const response = await chain.invoke({
-    input: `#######MAIN###### Here is the user question ${req.body.query} and the realted context is in ${rest}. You task is to make the sentence meaningful. The major things which should be taken care of before generating a response are ${refrain} and ${special}`
+    // input: `User: ${user}, Question: ${req.body.query} , Rules: ${rules} `
+    prompt: `Here is the User information : ${user} \n\n Questions: ${req.body.query} \n Answer:`
   })
   res.status(200).send(response.content)
 } catch (error) {

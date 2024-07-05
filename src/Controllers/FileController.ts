@@ -94,36 +94,48 @@ const model = new ChatCohere({
   model: "command"
 })
 
-export const queryData = async(req: Request, res: Response) => {
-try {
+export const queryData = async (req: Request, res: Response) => {
+  try {
+    const question: any = await embeddings.embedQuery(req.body.query);
+    const index = pc.index('cricket');
 
-  const question:any = await embeddings.embedQuery(req.body.query)
-  const index = pc.index('cricket')
+    const queryResponse = await index.namespace('ns1').query({
+      vector: question,
+      topK: 2,
+    });
 
-  const queryResponse = await index.namespace('ns1').query({
-    vector: question,
-    topK: 2,
-  })
+    const match = queryResponse.matches;
+    console.log(match);
 
-  const match = queryResponse.matches;
-  console.log(match)
-  const rest = match.map((e) => harsh[parseInt(e.id)])
-  const prompt = ChatPromptTemplate.fromMessages([req.body.query])
-  const chain = prompt.pipe(model);
-  const user = [`I am Harsh and give me response for my query according to the paragraph only dont give additional information . This is the paragraph: ${rest}. Dont reply to any questions which in not there in the paragraph`]
-  const rules = [`If there is no paragraph then write "I dont have enough information on that. Make the response based of paragraph" and in case there is a some other queries of user for example:
+    const rest = match.map((e) => harsh[parseInt(e.id)]);
+
+    const userParagraph = `I am harsh and I am expected to answer the question based on the paragraph. This is the paragraph: ${rest.join(' ')}`;
+    const rules = `If there is no context in the paragraph related to the topic or question then reply with "I don't have enough information on that." Make the response based on the paragraph. In case there are other queries from the user, for example:
     "Question": "What is God"
-    "Answer":"I dont have information about this topic.`]
-  const response = await chain.invoke({
-    // input: `User: ${user}, Question: ${req.body.query} , Rules: ${rules} `
-    prompt: `Here is the User information : ${user} \n\n Questions: ${req.body.query} \n Answer:`
-  })
-  res.status(200).send(response.content)
-} catch (error) {
-  console.log(error); 
-  res.status(404).send(error)
- } 
-}
+    "Answer": "I don't have information about this topic."`;
 
+    const promptText = `
+    User Information:
+    ${userParagraph}
 
+    Questions or topic related to which I want the response:
+    ${req.body.query}
 
+    Rules for answering the question:
+    ${rules}
+    `;
+
+    console.log("Constructed Prompt:", promptText);
+
+    const prompt = ChatPromptTemplate.fromMessages([ promptText ]);
+
+    const chain = prompt.pipe(model); 
+
+    const response = await chain.invoke({ prompt: promptText });
+
+    res.status(200).send(response.content);
+  } catch (error) {
+    console.log(error); 
+    res.status(404).send(error);
+  }
+};

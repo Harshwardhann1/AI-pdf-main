@@ -20,9 +20,11 @@ export const fileupload = async (req:any='', res: any="") => {
     refined = data.text.split(" ");
 
     for (let i = 0; i < refined.length; i += 200) {
-      const fast = harsh.push(refined.slice(i, i + 200).join(" "));
-      insertData(fast)
+      harsh.push(refined.slice(i, i + 200).join(" "));
     }
+
+    console.log("Data here ---------------------============>>>>>>>>",harsh);
+    console.log("------------> Refined -----",refined)
     if(res="")
     res.status(200).send('File uploaded successfully');
   } catch (err) {

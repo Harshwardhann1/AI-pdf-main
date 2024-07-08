@@ -94,61 +94,7 @@ const model = new ChatCohere({
   model: "command"
 })
 
-/* export const queryData = async (req: Request, res: Response) => {
-  try {
-    const question: any = await embeddings.embedQuery(req.body.query);
-    const index = pc.index('cricket');
 
-    const queryResponse = await index.namespace('ns1').query({
-      vector: question,
-      topK: 5,
-    });
-
-    const match = queryResponse.matches;
-    console.log(match);
-
-    const rest = match.map((e) => harsh[parseInt(e.id)]);
-
-
-    for(let i = 0; i < rest.length; i++) {
-      console.log("-------->top results"+rest[i])
-    }
-
-
-    for(let j = 0; j < rest.length; j++) {
-
-      const userParagraph = `I am harsh and I am expected to answer the question based on the paragraph. This is the paragraph: ${rest[j]}`;
-      const rules = `If there is no context in the paragraph related to the topic or question then reply with "I don't have enough information on that." Make the response based on the paragraph. In case there are other queries from the user, for example:
-      "Question": "What is God"
-      "Answer": "I don't have information about this topic."`;
-  
-      const promptText = `
-      User Information:
-      ${userParagraph}
-  
-      Questions or topic related to which I want the response:
-      ${req.body.query}
-  
-      Rules for answering the question:
-      ${rules}
-      `;
-  
-      console.log("Constructed Prompt:", promptText);
-  
-      const prompt = ChatPromptTemplate.fromMessages([ promptText ]);
-  
-      const chain = prompt.pipe(model); 
-  
-      const response = await chain.invoke({ prompt: promptText });
-      console.log(response.content)
-      res.status(200).send(response.content);
-    }
-
-  } catch (error) {
-    console.log(error); 
-    res.status(404).send(error);
-  }
-}; */
 
 
 export const queryData = async (req: Request, res: Response) => {
@@ -157,15 +103,19 @@ export const queryData = async (req: Request, res: Response) => {
     const index = pc.index('cricket');
     const queryResponse = await index.namespace('ns1').query({
       vector: question,
-      topK: 5, 
+      topK: 5,
     });
+
     const matches = queryResponse.matches;
     console.log(matches);
+
     const rest = matches.map((e) => harsh[parseInt(e.id)]);
     rest.forEach((result, index) => {
       console.log(`-------->top result ${index + 1}: ${result}`);
     });
+
     const allResponses = [];
+
     for (let j = 0; j < rest.length; j++) {
       const userParagraph = `I am Harsh and I am expected to answer the question based on the paragraph. This is the paragraph: ${rest[j]}`;
       const rules = `If there is no context in the paragraph related to the topic or question then reply with "I don't have enough information on that." Make the response based on the paragraph. In case there are other queries from the user, for example:
@@ -182,17 +132,31 @@ export const queryData = async (req: Request, res: Response) => {
       Rules for answering the question:
       ${rules}
       `;
+
       console.log("Constructed Prompt:", promptText);
+
       const prompt = ChatPromptTemplate.fromMessages([promptText]);
-      const chain = prompt.pipe(model); 
+      const chain = prompt.pipe(model);
       const response = await chain.invoke({ prompt: promptText });
       console.log(response.content);
+
       allResponses.push(response.content);
     }
-    res.status(200).send(allResponses);
+
+    const finalPromptText = `Your task is to select and return the most appropriate results out of these reponses. Here is the query and the responses: "${req.body.query}":
+    ${allResponses.map((response, index) => `Response ${index + 1}: ${response}`).join('\n')} .
+    `;
+    
+    console.log("Constructed Final Prompt:", finalPromptText);
+
+    const finalPrompt = ChatPromptTemplate.fromMessages([finalPromptText]);
+    const finalChain = finalPrompt.pipe(model);
+    const finalResponse = await finalChain.invoke({ prompt: finalPromptText });
+
+    res.status(200).send(finalResponse.content);
 
   } catch (error) {
-    console.log(error); 
+    console.log(error);
     res.status(404).send(error);
   }
 };

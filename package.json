@@ -21,10 +21,13 @@
     "express": "^4.19.2",
     "multer": "^1.4.5-lts.1",
     "pdf-parse": "^1.1.1",
+    "pg": "^8.12.0",
+    "postgrator": "^5.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.2"
   },
   "devDependencies": {
-    "@types/pdf-parse": "^1.1.4"
+    "@types/pdf-parse": "^1.1.4",
+    "@types/pg": "^8.11.6"
   }
 }

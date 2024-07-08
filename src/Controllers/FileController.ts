@@ -5,6 +5,7 @@ import { embeddings } from '../File Handling/langchainEmbeddings';
 import { Pinecone } from '@pinecone-database/pinecone';
 import { ChatCohere } from '@langchain/cohere';
 import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { insertData } from '../db/pdf';
 
 // let extractedText: any;
 let refined: any;
@@ -19,7 +20,8 @@ export const fileupload = async (req:any='', res: any="") => {
     refined = data.text.split(" ");
 
     for (let i = 0; i < refined.length; i += 200) {
-      harsh.push(refined.slice(i, i + 200).join(" "));
+      const fast = harsh.push(refined.slice(i, i + 200).join(" "));
+      insertData(fast)
     }
     if(res="")
     res.status(200).send('File uploaded successfully');

@@ -3,6 +3,6 @@
 CREATE TABLE "pdf"(
     "id" SERIAL PRIMARY KEY,
     "text" TEXT NULL,
-    "createBy",
+    "createBy" INT NOT NULL,
     "updatedAt" TIMESTAMPTZ NULL
 )
